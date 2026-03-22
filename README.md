@@ -23,6 +23,7 @@
   - [5. Airflow DAG](#5-airflow-dag)
     - [Airflow: Workflow Orchestrator](#airflow-workflow-orchestrator)
       - [Airflow with Docker Compose](#airflow-with-docker-compose)
+      - [Airflow: Trigger DAG](#airflow-trigger-dag)
 
 # Data Source: Common Crawl
 
@@ -307,7 +308,7 @@ docker-compose up airflow-init
 
 ```bash
 # Start docker containers in detached mode (runs in the background)
-docker-compose up -d
+docker-compose up -d --build
 
 # Open on browser
 #   Username: airflow
@@ -315,4 +316,24 @@ docker-compose up -d
 http://localhost:8080
 ```
 
+5. Restart docker compose
+
+```bash
+docker-compose restart
+```
+
+6. Bring down docker-compose
+
+```bash
+docker-compose down
+# docker-compose down -v # hard reset
+```
+
 ---
+
+#### Airflow: Trigger DAG
+
+<img src="./docs/diagrams/airflow-ingestion-dag.png" />
+<img src="./docs/diagrams/airflow-trigger-dag.png" />
+<img src="./docs/diagrams/airflow-trigger-dag-1.png" />
+<img src="./docs/diagrams/airflow-ingestion.png" />

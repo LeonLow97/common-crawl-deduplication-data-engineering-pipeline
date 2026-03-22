@@ -8,3 +8,22 @@
 *.tfstate.lock.info
 *.tfvars
 *.tfvars.json
+
+# Airflow
+logs/
+*.log
+*.err
+*.out
+airflow.db
+standalone_admin_password.txt
+.env
+docker-compose.override.yml
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+.pytest_cache/
+webserver_config.py
+airflow.cfg
