@@ -1,3 +1,6 @@
+# Generic
+*/data
+
 # Google Cloud
 *.json
 
@@ -27,3 +30,7 @@ env/
 .pytest_cache/
 webserver_config.py
 airflow.cfg
+
+# Python
+.venv
+.ipynb_checkpoints
