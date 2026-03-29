@@ -104,13 +104,13 @@ terraform/keys/
 Important: the current DAG code expects this exact filename:
 
 ```text
-terraform/keys/common-crawl-deduplication-184aa125ef30.json
+terraform/keys/common-crawl-deduplication-XXXXXXXXXXXX.json
 ```
 
 So the easiest path is to name your key file exactly:
 
 ```text
-common-crawl-deduplication-184aa125ef30.json
+common-crawl-deduplication-XXXXXXXXXXXX.json
 ```
 
 If you want to use a different filename, you will also need to update:
@@ -131,7 +131,7 @@ The defaults in this repository are:
 ```hcl
 project_id       = "common-crawl-deduplication"
 region           = "us-east1"
-credentials_file = "keys/common-crawl-deduplication-184aa125ef30.json"
+credentials_file = "keys/common-crawl-deduplication-XXXXXXXXXXXX.json"
 ```
 
 This project uses `us-east1` because Common Crawl data is hosted in AWS `us-east-1`, so it is a sensible region for keeping the pipeline geographically close to the source data.
@@ -216,35 +216,59 @@ In the Airflow UI, look for this DAG:
 common_crawl_gcs_to_bigquery_dag
 ```
 
-This is the main DAG for the project.
-
-Use the Airflow UI to trigger it manually.
-
-These screenshots show the DAG view and the trigger flow:
-
-<img src="./diagrams/airflow-ingestion-dag.png" />
-
-<img src="./diagrams/airflow-trigger-dag.png" />
-
-<img src="./diagrams/airflow-trigger-dag-1.png" />
-
-<img src="./diagrams/airflow-ingestion.png" />
-
-## Step 5: What the DAG Does
-
 When `common_crawl_gcs_to_bigquery_dag` runs, it executes three tasks in order:
 
 1. `ingest_to_gcs`
 2. `transform_gcs_wets`
 3. `load_final_docs_to_bigquery`
 
-In plain English, that means:
+This is the main DAG for the project.
 
-1. It downloads a sampled set of Common Crawl WET files and uploads them into your GCS data lake.
-2. It transforms those WET files into parquet outputs.
-3. It loads the final parquet data into BigQuery.
+Use the Airflow UI to trigger it manually.
 
-So this DAG covers the full path from raw crawl text to a warehouse table you can query.
+These screenshots show the DAG view and the trigger flow:
+
+### Airflow DAG Overview
+
+<img src="./diagrams/airflow-dag.png" />
+
+### Airflow Ingest
+
+- `ingest_to_gcs` DAG downloads a sampled set of Common Crawl WET files and uploads them into your GCS data lake.
+
+<img src="./diagrams/airflow-ingest.png" />
+
+- `transform_gcs_wets` DAG transforms those WET files into parquet outputs.
+
+<img src="./diagrams/airflow-transform.png" />
+
+- `load_final_docs_to_bigquery` loads the final parquet data into BigQuery.
+
+<img src="./diagrams/airflow-load.png" />
+
+## Step 5: Check that data is uploaded to Data Lake (GCS)
+
+- Verify data was ingested into Google Cloud Storage (Data Lake)
+
+<img src="./diagrams/gcp-cloud-storage-ccdp-sample-objects.png" />
+
+- Verify that after transforming raw data with PySpark, data was uploaded as parquet files onto GCS
+
+<img src="./diagrams/gcp-cloud-storage-ccdp-dedup-parquet.png" />
+
+## Step 6: View Data in BigQuery
+
+- Visualize data on BigQuery
+
+<img src="./diagrams/bigquery-select.png" />
+
+- In the BigQuery UI, manually apply partitioning on `crawl_date` and clustering on `domain` and `crawl_id`.
+
+<img src="./diagrams/bigquery-partition-and-cluster.png" />
+
+- Query the table using the partitioned and clustered layout
+
+<img src="./diagrams/bigquery-partition-cluster-query.png" />
 
 ## What Success Looks Like
 
@@ -257,7 +281,13 @@ If everything works, you should end up with data in these locations:
 
 You may also see sampled objects appear in the bucket like this:
 
-<img src="./diagrams/gcp-cloud-storage-ccdp-sample-objects.png" />
+### GCS Bucket
+
+<img src="./diagrams/gcp-bucket-shot.png" />
+
+### GCS BigQuery
+
+<img src="./diagrams/gcp-bigquery-shot.png" />
 
 ## Common Setup Issues
 
@@ -270,7 +300,7 @@ If the DAG is visible in Airflow but fails quickly, the most common reasons are:
 
 If Airflow itself does not open at `http://localhost:8080`, it usually means the containers are still starting or the Docker build has not finished yet.
 
-## Step 6: View the Dashboard Locally
+## Step 7: View the Dashboard Locally
 
 After the pipeline completes and data is loaded into BigQuery, you can visualize the results using the local Streamlit dashboard.
 
@@ -279,16 +309,17 @@ The dashboard provides two main visualizations:
 1. **Top Domains by Document Count** - Shows the categorical distribution of deduplicated documents across the most common domains
 2. **Documents Over Time** - Shows the temporal distribution of documents by crawl date
 
-### 6.1 Install Dashboard Dependencies
+### 7.1 Install Dashboard Dependencies
 
 From the repository root, navigate to the dashboard directory and install the required packages:
 
 ```bash
 cd dashboard
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 6.2 Run the Dashboard
+### 7.2 Run the Dashboard
 
 Start the Streamlit dashboard:
 
@@ -300,12 +331,30 @@ The dashboard will automatically open in your browser at `http://localhost:8501`
 
 This dashboard runs locally on your machine. For this project, that is enough to satisfy the dashboard requirement during a live demo or walkthrough.
 
-### 6.3 Configure the Dashboard
+The dashboard displays:
+
+- **Summary Statistics**: Total documents, unique domains, crawl dates, and average text length
+- **Top Domains Bar Chart**: Visual distribution of documents across the most common domains
+- **Temporal Line Chart**: Document counts over time by crawl date
+- **Data Tables**: Expandable views of the underlying data for each visualization
+
+For more details, see [dashboard/README.md](../dashboard/README.md).
+
+#### Dashboard: Top Domains by Document Count
+
+<img src="./diagrams/streamlit-top-domains.png" />
+<img src="./diagrams/streamlit-domain-data-table.png" />
+
+#### Dashboard: Document Distribution Over Time
+
+<img src="./diagrams/streamlit-document-distribution.png" />
+
+### 7.3 Configure the Dashboard
 
 The dashboard uses the same service account key as the pipeline. By default, it looks for:
 
 ```text
-../terraform/keys/common-crawl-deduplication-184aa125ef30.json
+../terraform/keys/common-crawl-deduplication-XXXXXXXXXXXX.json
 ```
 
 You can adjust the configuration in the sidebar if needed:
@@ -315,17 +364,6 @@ You can adjust the configuration in the sidebar if needed:
 - BigQuery Table (default: `final_docs`)
 - Service Account Key Path
 - Number of top domains to display
-
-### What the Dashboard Shows
-
-The dashboard displays:
-
-- **Summary Statistics**: Total documents, unique domains, crawl dates, and average text length
-- **Top Domains Bar Chart**: Visual distribution of documents across the most common domains
-- **Temporal Line Chart**: Document counts over time by crawl date
-- **Data Tables**: Expandable views of the underlying data for each visualization
-
-For more details, see [dashboard/README.md](../dashboard/README.md).
 
 ## Recommended Run Order
 

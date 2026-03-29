@@ -11,7 +11,7 @@ from google.oauth2 import service_account
 DEFAULT_PROJECT_ID = "common-crawl-deduplication"
 DEFAULT_BUCKET_NAME = "ccdp-raw-common-crawl-deduplication"
 DEFAULT_CRAWL_ID = "CC-MAIN-2026-08"
-DEFAULT_SERVICE_ACCOUNT_KEY_FILE = "terraform/keys/common-crawl-deduplication-184aa125ef30.json"
+DEFAULT_SERVICE_ACCOUNT_KEY_FILE = "terraform/keys/common-crawl-deduplication-XXXXXXXXXXXX.json"
 DEFAULT_DATASET_ID = "common_crawl_dedup"
 DEFAULT_TABLE_ID = "final_docs"
 DEFAULT_LOCATION = "US"

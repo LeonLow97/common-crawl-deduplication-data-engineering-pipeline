@@ -17,7 +17,7 @@ KEY_PATH = os.path.join(
     PROJECT_ROOT,
     "terraform",
     "keys",
-    "common-crawl-deduplication-184aa125ef30.json",
+    "common-crawl-deduplication-XXXXXXXXXXXX.json",
 )
 
 DEFAULT_PROJECT_ID = "common-crawl-deduplication"
@@ -69,7 +69,7 @@ with DAG(
                 --raw-bucket {{{{ dag_run.conf.get('bucket_name', '{DEFAULT_BUCKET_NAME}') }}}} \
                 --output-bucket {{{{ dag_run.conf.get('output_bucket_name', '{DEFAULT_BUCKET_NAME}') }}}} \
                 --crawl-id {{{{ dag_run.conf.get('crawl_id', '{DEFAULT_CRAWL_ID}') }}}} \
-                --key-file common-crawl-deduplication-184aa125ef30.json \
+                --key-file common-crawl-deduplication-XXXXXXXXXXXX.json \
                 --max-files {{{{ dag_run.conf.get('max_files', 10) }}}} \
                 --max-docs-per-file {{{{ dag_run.conf.get('max_docs_per_file', 300) }}}}
         """,

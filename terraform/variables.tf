@@ -18,5 +18,5 @@ variable "prefix" {
 variable "credentials_file" {
   description = "Path to the JSON service account key file for authentication."
   type        = string
-  default     = "keys/common-crawl-deduplication-184aa125ef30.json"
+  default     = "keys/common-crawl-deduplication-XXXXXXXXXXXX.json"
 }

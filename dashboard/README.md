@@ -9,6 +9,15 @@ The dashboard provides two main visualizations:
 1. **Top Domains by Document Count** - A bar chart showing the categorical distribution of deduplicated documents across the most common domains
 2. **Documents Over Time** - A line chart showing the temporal distribution of documents by crawl date
 
+#### Dashboard: Top Domains by Document Count
+
+<img src="../docs/diagrams/streamlit-top-domains.png" />
+<img src="../docs/diagrams/streamlit-domain-data-table.png" />
+
+#### Dashboard: Document Distribution Over Time
+
+<img src="../docs/diagrams/streamlit-document-distribution.png" />
+
 Additionally, the dashboard displays summary statistics including:
 
 - Total document count
@@ -34,7 +43,7 @@ pip install -r requirements.txt
 2. Ensure your service account key is available at:
 
 ```
-../terraform/keys/common-crawl-deduplication-184aa125ef30.json
+../terraform/keys/common-crawl-deduplication-XXXXXXXXXXXX.json
 ```
 
 Or update the path in the dashboard sidebar.

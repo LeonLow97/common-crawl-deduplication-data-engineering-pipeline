@@ -27,7 +27,7 @@ from gcs_storage_helpers import (  # noqa: E402
 DEFAULT_PROJECT_ID = "common-crawl-deduplication"
 DEFAULT_RAW_BUCKET_NAME = "ccdp-raw-common-crawl-deduplication"
 DEFAULT_CRAWL_ID = "CC-MAIN-2026-08"
-DEFAULT_SERVICE_ACCOUNT_KEY_FILE = "common-crawl-deduplication-184aa125ef30.json"
+DEFAULT_SERVICE_ACCOUNT_KEY_FILE = "common-crawl-deduplication-XXXXXXXXXXXX.json"
 
 DEFAULT_MAX_FILES = 10
 DEFAULT_MAX_DOCS_PER_FILE = 300
@@ -360,7 +360,7 @@ def run_transform(args: argparse.Namespace) -> None:
             .withColumn("crawl_id", F.lit(args.crawl_id))
             .withColumn(
                 "file_timestamp_raw",
-                F.regexp_extract("source_file", r"CC-MAIN-(\\d{14})-", 1),
+                F.regexp_extract("source_file", r"CC-MAIN-(\d{14})-", 1),
             )
             .withColumn(
                 "crawl_file_timestamp",

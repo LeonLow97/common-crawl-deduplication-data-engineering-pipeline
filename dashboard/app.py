@@ -20,7 +20,7 @@ from google.oauth2 import service_account
 DEFAULT_PROJECT_ID = "common-crawl-deduplication"
 DEFAULT_DATASET_ID = "common_crawl_dedup"
 DEFAULT_TABLE_ID = "final_docs"
-DEFAULT_KEY_FILE = "../terraform/keys/common-crawl-deduplication-184aa125ef30.json"
+DEFAULT_KEY_FILE = "../terraform/keys/common-crawl-deduplication-XXXXXXXXXXXX.json"
 
 
 def get_bigquery_client(key_file: str, project_id: str) -> bigquery.Client:
