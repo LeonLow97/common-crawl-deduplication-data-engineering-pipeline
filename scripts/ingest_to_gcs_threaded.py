@@ -19,7 +19,7 @@ CHUNK_SIZE_BYTES = 1024 * 1024
 _thread_local = threading.local()
 
 
-def get_sampled_paths(url, sample_size):
+def get_sampled_paths(url, sample_size, seed):
     """Downloads the manifest and picks random file paths."""
     headers = {"User-Agent": USER_AGENT}
 
@@ -39,7 +39,11 @@ def get_sampled_paths(url, sample_size):
     )
 
     actual_sample_size = min(len(all_paths), sample_size)
-    return random.sample(all_paths, actual_sample_size)
+    rng = random.Random(seed)
+    sampled_paths = rng.sample(all_paths, actual_sample_size)
+    sampled_paths.sort()
+    print(f"[get_sampled_paths] Using deterministic sample seed: {seed}")
+    return sampled_paths
 
 
 def build_storage_client(key_file):
@@ -55,6 +59,30 @@ def ensure_bucket_exists(storage_client, bucket_name):
         print(f"[ensure_bucket_exists] Bucket {bucket_name} created successfully.")
     else:
         print(f"[ensure_bucket_exists] Confirmed: Bucket {bucket_name} exists.")
+
+
+def clear_gcs_prefix(storage_client, bucket_name, prefix):
+    normalized_prefix = prefix.strip("/")
+    if not normalized_prefix:
+        raise ValueError("Refusing to clear an empty GCS prefix")
+
+    bucket = storage_client.bucket(bucket_name)
+    blobs = list(storage_client.list_blobs(bucket, prefix=f"{normalized_prefix}/"))
+
+    if not blobs:
+        print(
+            f"[clear_gcs_prefix] No existing objects found under gs://{bucket_name}/{normalized_prefix}/"
+        )
+        return
+
+    print(
+        f"[clear_gcs_prefix] Deleting {len(blobs)} existing objects under "
+        f"gs://{bucket_name}/{normalized_prefix}/ before upload."
+    )
+    bucket.delete_blobs(blobs)
+    print(
+        f"[clear_gcs_prefix] Cleared gs://{bucket_name}/{normalized_prefix}/ successfully."
+    )
 
 
 def get_thread_storage_client(key_file):
@@ -133,22 +161,40 @@ def main():
         default=4,
         help="Number of parallel upload threads to run",
     )
+    parser.add_argument(
+        "--sample-seed",
+        default=None,
+        help="Optional deterministic seed for manifest sampling. Defaults to a crawl-specific seed.",
+    )
+    parser.add_argument(
+        "--keep-existing-prefix",
+        action="store_true",
+        help="Keep existing objects under raw/<crawl-id>/ instead of clearing them before upload.",
+    )
 
     args = parser.parse_args()
     if args.max_workers < 1:
         raise ValueError("--max-workers must be at least 1")
 
     manifest_url = f"{COMMON_CRAWL_BASE_URL}/crawl-data/{args.crawl_id}/wet.paths.gz"
+    sample_seed = args.sample_seed or f"{args.crawl_id}:{args.sample_size}"
+    raw_prefix = f"raw/{args.crawl_id}"
 
     try:
-        sample_paths = get_sampled_paths(manifest_url, args.sample_size)
+        sample_paths = get_sampled_paths(manifest_url, args.sample_size, sample_seed)
 
         bootstrap_client = build_storage_client(args.key_file)
         ensure_bucket_exists(bootstrap_client, args.bucket)
+        if args.keep_existing_prefix:
+            print(
+                f"[main] Keeping existing objects under gs://{args.bucket}/{raw_prefix}/."
+            )
+        else:
+            clear_gcs_prefix(bootstrap_client, args.bucket, raw_prefix)
 
         print(
             f"[main] Starting threaded upload for {len(sample_paths)} files "
-            f"with max_workers={args.max_workers}."
+            f"with max_workers={args.max_workers} into gs://{args.bucket}/{raw_prefix}/."
         )
 
         success_count = 0
